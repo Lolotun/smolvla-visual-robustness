@@ -1,0 +1,15 @@
+condition,method,camera,kernel_size,suite,task_id,seed,success,steps,total_reward,max_reward
+clean,clean,image2,,libero_spatial,0,42,True,82,1.0,1.0
+blur_5_0,blur,image,5,libero_spatial,0,42,True,73,1.0,1.0
+blur_5_0_1,blur,"image,image2",5,libero_spatial,0,42,False,140,0.0,0.0
+blur_11_0,blur,image,11,libero_spatial,0,42,False,140,0.0,0.0
+blur_15_0,blur,image,15,libero_spatial,0,42,True,73,1.0,1.0
+blur_31_0,blur,image,31,libero_spatial,0,42,True,77,1.0,1.0
+blur_51_0,blur,image,51,libero_spatial,0,42,False,140,0.0,0.0
+blur_5_1,blur,image2,5,libero_spatial,0,42,True,82,1.0,1.0
+blur_11_1,blur,image2,11,libero_spatial,0,42,True,76,1.0,1.0
+blur_15_1,blur,image2,15,libero_spatial,0,42,False,140,0.0,0.0
+blur_31_1,blur,image2,31,libero_spatial,0,42,False,140,0.0,0.0
+blur_51_1,blur,image2,51,libero_spatial,0,42,False,140,0.0,0.0
+turnoff_0,turnoff,image,,libero_spatial,0,42,False,140,0.0,0.0
+turnoff_1,turnoff,image2,,libero_spatial,0,42,False,140,0.0,0.0

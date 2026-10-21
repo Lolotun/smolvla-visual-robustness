@@ -1,0 +1,15 @@
+condition,task_id,n_episodes,successes,success_rate
+clean,0,1,1,1.0
+blur_5_0,0,1,1,1.0
+blur_5_0_1,0,1,0,0.0
+blur_11_0,0,1,0,0.0
+blur_15_0,0,1,1,1.0
+blur_31_0,0,1,1,1.0
+blur_51_0,0,1,0,0.0
+blur_5_1,0,1,1,1.0
+blur_11_1,0,1,1,1.0
+blur_15_1,0,1,0,0.0
+blur_31_1,0,1,0,0.0
+blur_51_1,0,1,0,0.0
+turnoff_0,0,1,0,0.0
+turnoff_1,0,1,0,0.0

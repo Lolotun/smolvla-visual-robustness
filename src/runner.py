@@ -17,6 +17,7 @@ from lerobot.policies.factory import make_policy, make_pre_post_processors
 from lerobot.utils.constants import ACTION, OBS_STR
 from lerobot.utils.io_utils import write_video
 
+from attention_probe import capture_cross_attention
 from corruptions import NoCorruption, VisualCorruption, make_corruption
 
 
@@ -82,6 +83,11 @@ def run_batch(
     max_steps: int | None = None,
     corruption: VisualCorruption | None = None,
     output_names: list[str] | None = None,
+    attention: bool = False,
+    attention_csv: str | Path | None = None,
+    attention_metadata: list[dict] | None = None,
+    attention_layers: list[int] | None = None,
+    attention_steps: list[int] | None = None,
 ):
     """Run one rollout per seed simultaneously and return one result per seed.
 
@@ -93,6 +99,10 @@ def run_batch(
         raise ValueError(f"env has {env.num_envs} slots but received {len(seeds)} seeds")
     if output_names is not None and len(output_names) != env.num_envs:
         raise ValueError("output_names must contain one name per vector-environment slot")
+    if attention and (attention_csv is None or attention_metadata is None):
+        raise ValueError("attention requires attention_csv and attention_metadata")
+    if attention_metadata is not None and len(attention_metadata) != env.num_envs:
+        raise ValueError("attention_metadata must contain one mapping per vector-environment slot")
 
     policy.reset()
     corruption = corruption or NoCorruption()
@@ -111,6 +121,7 @@ def run_batch(
     env_max_steps = env.call("_max_episode_steps")[0]
     max_steps = min(max_steps, env_max_steps) if max_steps is not None else env_max_steps
     progress = trange(max_steps, desc="Running batched rollout", leave=False)
+    attention_steps = {0} if attention_steps is None else set(attention_steps)
 
     for step in progress:
         if done.all():
@@ -133,6 +144,15 @@ def run_batch(
         observation = add_envs_task(env, observation)
         observation = env_preprocessor(observation)
         observation = preprocessor(observation)
+
+        if attention and step in attention_steps:
+            capture_cross_attention(
+                policy=policy,
+                observation=observation,
+                csv_path=attention_csv,
+                metadata=[{**item, "env_step": step} for item in attention_metadata],
+                layers=attention_layers,
+            )
 
         with torch.inference_mode():
             action = policy.select_action(observation)
@@ -190,6 +210,11 @@ def run_episode(
     corruption: VisualCorruption | None = None,
     output_name: str | None = None,
     return_observations: bool = False,
+    attention: bool = False,
+    attention_csv: str | Path | None = None,
+    attention_metadata: dict | None = None,
+    attention_layers: list[int] | None = None,
+    attention_steps: list[int] | None = None,
 ):
     """Run one episode and return the metrics needed for the experiment table.
 
@@ -197,6 +222,8 @@ def run_episode(
     """
     policy.reset()
     corruption = corruption or NoCorruption()
+    if attention and (attention_csv is None or attention_metadata is None):
+        raise ValueError("attention requires attention_csv and attention_metadata")
     corruption.reset()
     raw_observation, info = env.reset(seed=[seed])
 
@@ -211,6 +238,7 @@ def run_episode(
     env_max_steps = env.call("_max_episode_steps")[0]
     max_steps = min(max_steps, env_max_steps) if max_steps is not None else env_max_steps
     progress = trange(max_steps, desc="Running rollout", leave=False)
+    attention_steps = {0} if attention_steps is None else set(attention_steps)
 
     for step in progress:
         if np.all(done):
@@ -232,6 +260,15 @@ def run_episode(
         observation = add_envs_task(env, observation)
         observation = env_preprocessor(observation)
         observation = preprocessor(observation)
+
+        if attention and step in attention_steps:
+            capture_cross_attention(
+                policy=policy,
+                observation=observation,
+                csv_path=attention_csv,
+                metadata={**attention_metadata, "env_step": step},
+                layers=attention_layers,
+            )
 
         with torch.inference_mode():
             action = policy.select_action(observation)

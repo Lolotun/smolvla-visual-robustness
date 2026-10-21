@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Any, Literal, Sequence
 import cv2
 import numpy as np
 
@@ -98,14 +98,41 @@ class FrameTurnedOff(VisualCorruption):
         return raw_observation
 
 
+@dataclass
+class CompositeCorruption(VisualCorruption):
+    """Apply several camera corruptions to the same raw observation."""
+
+    corruptions: list[VisualCorruption]
+    name: str
+
+    def reset(self) -> None:
+        for corruption in self.corruptions:
+            corruption.reset()
+
+    def apply(self, raw_observation: RawObservation, step: int) -> RawObservation:
+        for corruption in self.corruptions:
+            raw_observation = corruption.apply(raw_observation, step)
+        return raw_observation
+
+
 def make_corruption(
     method: str,
     kernel_size: int = 5,
-    camera: CameraName = "image2",
+    camera: CameraName | Sequence[CameraName] = "image2",
 ) -> VisualCorruption:
     """Build the corruption selected by runner.py's CLI options."""
     if method == "clean":
         return NoCorruption()
+    if not isinstance(camera, str):
+        cameras = list(camera)
+        if not cameras:
+            raise ValueError("At least one camera must be selected")
+        if len(set(cameras)) != len(cameras):
+            raise ValueError("Each camera may appear only once")
+        camera_indices = "_".join(str({"image": 0, "image2": 1}[item]) for item in cameras)
+        individual = [make_corruption(method, kernel_size, item) for item in cameras]
+        name = f"blur_{kernel_size}_{camera_indices}" if method == "blur" else f"{method}_{camera_indices}"
+        return CompositeCorruption(corruptions=individual, name=name)
     if method == "blur":
         return GaussianBlur(camera=camera, kernel_size=kernel_size)
     if method == "turnoff":

@@ -56,6 +56,11 @@ def main(cfg: ExperimentConfig):
     n_envs = plan.get("n_envs", len(plan["seeds"]))
     if n_envs != len(plan["seeds"]):
         raise ValueError("For now n_envs must equal the number of seeds in the plan")
+    attention_config = plan.get("attention", {})
+    attention_enabled = attention_config.get("enabled", False)
+    attention_csv = attention_config.get("output_csv")
+    if attention_enabled and attention_csv is None:
+        raise ValueError("attention.enabled requires attention.output_csv")
 
     with cfg.output_csv.open("w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -63,7 +68,8 @@ def main(cfg: ExperimentConfig):
 
         for condition in plan["conditions"]:
             method = condition["method"]
-            camera = condition.get("camera", "image2")
+            camera = condition.get("cameras", condition.get("camera", "image2"))
+            camera_label = ",".join(camera) if isinstance(camera, list) else camera
             kernel_size = condition.get("kernel_size", "")
             corruption = make_corruption(method, kernel_size or 5, camera)
             condition_name = condition.get("name", corruption.name)
@@ -81,6 +87,19 @@ def main(cfg: ExperimentConfig):
                             for seed in plan["seeds"]
                         ]
 
+                    attention_metadata = [
+                        {
+                            "condition": condition_name,
+                            "method": method,
+                            "corrupted_camera": camera_label if method != "clean" else "none",
+                            "kernel_size": kernel_size,
+                            "suite": plan["suite"],
+                            "task_id": task_id,
+                            "seed": seed,
+                        }
+                        for seed in plan["seeds"]
+                    ]
+
                     results = run_batch(
                         env=env,
                         policy=policy,
@@ -92,12 +111,17 @@ def main(cfg: ExperimentConfig):
                         max_steps=plan.get("max_steps"),
                         corruption=corruption,
                         output_names=output_names,
+                        attention=attention_enabled,
+                        attention_csv=attention_csv,
+                        attention_metadata=attention_metadata,
+                        attention_layers=attention_config.get("layers"),
+                        attention_steps=attention_config.get("steps"),
                     )
                     for result in results:
                         row = {
                             "condition": condition_name,
                             "method": method,
-                            "camera": camera,
+                            "camera": camera_label,
                             "kernel_size": kernel_size,
                             "suite": plan["suite"],
                             "task_id": task_id,
