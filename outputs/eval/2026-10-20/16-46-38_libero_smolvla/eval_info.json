@@ -1,0 +1,44 @@
+{
+  "per_task": [
+    {
+      "task_group": "libero_spatial",
+      "task_id": 0,
+      "metrics": {
+        "sum_rewards": [
+          1.0
+        ],
+        "max_rewards": [
+          1.0
+        ],
+        "successes": [
+          true
+        ],
+        "video_paths": [
+          "outputs/eval/2026-10-20/16-46-38_libero_smolvla/videos/libero_spatial_0/eval_episode_0.mp4"
+        ]
+      }
+    }
+  ],
+  "per_group": {
+    "libero_spatial": {
+      "avg_sum_reward": 1.0,
+      "avg_max_reward": 1.0,
+      "pc_success": 100.0,
+      "n_episodes": 1,
+      "video_paths": [
+        "outputs/eval/2026-10-20/16-46-38_libero_smolvla/videos/libero_spatial_0/eval_episode_0.mp4"
+      ]
+    }
+  },
+  "overall": {
+    "avg_sum_reward": 1.0,
+    "avg_max_reward": 1.0,
+    "pc_success": 100.0,
+    "n_episodes": 1,
+    "eval_s": 15.534391164779663,
+    "eval_ep_s": 15.534391403198242,
+    "video_paths": [
+      "outputs/eval/2026-10-20/16-46-38_libero_smolvla/videos/libero_spatial_0/eval_episode_0.mp4"
+    ]
+  }
+}

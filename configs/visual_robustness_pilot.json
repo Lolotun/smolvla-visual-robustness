@@ -1,0 +1,22 @@
+{
+  "suite": "libero_spatial",
+  "task_ids": [0, 1, 2, 3, 4],
+  "seeds": [42, 43, 44],
+  "n_envs": 3,
+  "max_steps": 140,
+  "conditions": [
+    {"name": "clean", "method": "clean"},
+    {"name": "blur_5_0", "method": "blur", "camera": "image", "kernel_size": 5},
+    {"name": "blur_11_0", "method": "blur", "camera": "image", "kernel_size": 11},
+    {"name": "blur_15_0", "method": "blur", "camera": "image", "kernel_size": 15},
+    {"name": "blur_31_0", "method": "blur", "camera": "image", "kernel_size": 31},
+    {"name": "blur_51_0", "method": "blur", "camera": "image", "kernel_size": 51},
+    {"name": "blur_5_1", "method": "blur", "camera": "image2", "kernel_size": 5},
+    {"name": "blur_11_1", "method": "blur", "camera": "image2", "kernel_size": 11},
+    {"name": "blur_15_1", "method": "blur", "camera": "image2", "kernel_size": 15},
+    {"name": "blur_31_1", "method": "blur", "camera": "image2", "kernel_size": 31},
+    {"name": "blur_51_1", "method": "blur", "camera": "image2", "kernel_size": 51},
+    {"name": "turnoff_0", "method": "turnoff", "camera": "image"},
+    {"name": "turnoff_1", "method": "turnoff", "camera": "image2"}
+  ]
+}

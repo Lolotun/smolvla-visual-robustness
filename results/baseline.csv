@@ -1,0 +1,16 @@
+condition,suite,task_id,seed,success,steps,total_reward,max_reward
+clean,libero_spatial,0,42,True,76,1.0,1.0
+clean,libero_spatial,0,43,False,280,0.0,0.0
+clean,libero_spatial,0,44,False,280,0.0,0.0
+clean,libero_spatial,0,45,False,280,0.0,0.0
+clean,libero_spatial,0,46,True,71,1.0,1.0
+clean,libero_spatial,1,42,True,105,1.0,1.0
+clean,libero_spatial,1,43,True,106,1.0,1.0
+clean,libero_spatial,1,44,True,108,1.0,1.0
+clean,libero_spatial,1,45,True,113,1.0,1.0
+clean,libero_spatial,1,46,True,97,1.0,1.0
+clean,libero_spatial,2,42,False,280,0.0,0.0
+clean,libero_spatial,2,43,True,98,1.0,1.0
+clean,libero_spatial,2,44,True,99,1.0,1.0
+clean,libero_spatial,2,45,True,109,1.0,1.0
+clean,libero_spatial,2,46,True,114,1.0,1.0
