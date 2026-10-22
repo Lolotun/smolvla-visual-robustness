@@ -143,7 +143,7 @@ test tasks 1 and 2 (next to the ramekin and table center), so this is not a full
 
 We used **LoRA rank 8, alpha 8, dropout 0**, with adapters on the action expert's query/value projections
 and the state, action and time projections. The pretrained weights, including the visual encoder, stayed frozen.
-Training ran for **15,000 steps**, with **batch size 4**, seed 42 and AdamW at a peak learning rate of $10^{-4}$.
+Training ran for **15,000 steps**, with **batch size 4**, seed 42 and AdamW at a peak learning rate of **0.0001**.
 We used 1,000 warm-up steps followed by cosine decay and saved a checkpoint every 3,000 steps.
 
 For each training sample, we randomly kept both images clean or corrupted one camera:
@@ -152,15 +152,15 @@ $$
 (\widetilde I_m,\widetilde I_w)=
 \begin{cases}
 (I_m,I_w), & p=0.50,\\
-(\operatorname{blur}_{31}(I_m),I_w), & p=0.15,\\
-(I_m,\operatorname{blur}_{31}(I_w)), & p=0.15,\\
+(B(I_m),I_w), & p=0.15,\\
+(I_m,B(I_w)), & p=0.15,\\
 (0,I_w), & p=0.10,\\
 (I_m,0), & p=0.10.
 \end{cases}
 $$
 
-Here $I_m$ and $I_w$ are the main and wrist images. Blur uses a 31 × 31 Gaussian kernel; blackout replaces
-one image with zeros. The action targets, robot state and instruction stay unchanged. This gives the model
+Here `I_m` and `I_w` are the main and wrist images, and **B** denotes Gaussian blur with a 31 × 31 kernel.
+Blackout replaces one image with zeros. The action targets, robot state and instruction stay unchanged. This gives the model
 practice following the same demonstrations when one view is degraded.
 
 ### Results after training
@@ -171,8 +171,8 @@ We compared both models on **3 tasks × 3 seeds**, with 140 steps per episode. T
 full-blackout results come from the blur run; temporary blackouts come from a separate run. Each panel uses
 that run's clean reference. Exact counts and confidence intervals are in [the notebook](notebooks/analysis.ipynb).
 
-With the main camera blurred, success rose from **44.4% to 66.7%** at $k=5$ and from **33.3% to 44.4%** at
-$k=31$. Clean success in this comparison stayed at **77.8%**. A short main-camera blackout during approach
+With the main camera blurred, success rose from **44.4% to 66.7%** at k = 5 and from **33.3% to 44.4%** at
+k = 31. Clean success in this comparison stayed at **77.8%**. A short main-camera blackout during approach
 also improved, from **66.7% to 100%**.
 
 Other conditions were mixed. Full blackout did not improve, and blackout during grasp became worse for both
