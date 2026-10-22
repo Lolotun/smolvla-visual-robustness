@@ -26,8 +26,9 @@ DEVICE = "cuda"
 VIDEO_FPS = 20
 
 
-def load_policy_components():
-    """Load SmolVLA and its processors once; reuse them across all episodes."""
+def load_policy_components(checkpoint: str | Path = CHECKPOINT):
+    """Load a SmolVLA checkpoint and its processors once for all episodes."""
+    checkpoint = str(checkpoint)
     reference_env_config = LiberoEnv(task="libero_spatial", task_ids=[0])
 
     policy_config = PreTrainedConfig.from_pretrained(CHECKPOINT)

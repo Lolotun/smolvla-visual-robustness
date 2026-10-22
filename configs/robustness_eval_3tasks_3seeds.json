@@ -1,0 +1,25 @@
+{
+  "suite": "libero_spatial",
+  "task_ids": [0, 1, 2],
+  "seeds": [42, 43, 44],
+  "n_envs": 3,
+  "max_steps": 140,
+  "conditions": [
+    {"name": "clean", "method": "clean"},
+
+    {"name": "blur_5_0", "method": "blur", "camera": "image", "kernel_size": 5},
+    {"name": "blur_31_0", "method": "blur", "camera": "image", "kernel_size": 31},
+    {"name": "blur_5_1", "method": "blur", "camera": "image2", "kernel_size": 5},
+    {"name": "blur_31_1", "method": "blur", "camera": "image2", "kernel_size": 31},
+
+    {"name": "off_approach_0", "method": "temporary_off", "camera": "image", "start_step": 10, "duration": 20},
+    {"name": "off_grasp_0", "method": "temporary_off", "camera": "image", "start_step": 40, "duration": 20},
+    {"name": "off_transport_0", "method": "temporary_off", "camera": "image", "start_step": 60, "duration": 20},
+    {"name": "turnoff_0", "method": "turnoff", "camera": "image"},
+
+    {"name": "off_approach_1", "method": "temporary_off", "camera": "image2", "start_step": 10, "duration": 20},
+    {"name": "off_grasp_1", "method": "temporary_off", "camera": "image2", "start_step": 40, "duration": 20},
+    {"name": "off_transport_1", "method": "temporary_off", "camera": "image2", "start_step": 60, "duration": 20},
+    {"name": "turnoff_1", "method": "turnoff", "camera": "image2"}
+  ]
+}

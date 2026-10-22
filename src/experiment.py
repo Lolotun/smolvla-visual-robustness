@@ -34,6 +34,7 @@ FIELDNAMES = [
 class ExperimentConfig:
     plan_path: Path = Path("configs/visual_robustness_pilot.json")
     output_csv: Path = Path("results/visual_robustness_pilot.csv")
+    policy_path: str = "HuggingFaceVLA/smolvla_libero"
     save_videos: bool = False
     resume: bool = True
     rerun_conditions: str = ""
@@ -179,7 +180,7 @@ def main(cfg: ExperimentConfig):
     if attention_enabled and attention_csv is None:
         raise ValueError("attention.enabled requires attention.output_csv")
 
-    policy, policy_config, preprocessor, postprocessor = load_policy_components()
+    policy, policy_config, preprocessor, postprocessor = load_policy_components(cfg.policy_path)
     append = bool(rows) and cfg.resume
     mode = "a" if append else "w"
     with cfg.output_csv.open(mode, newline="", encoding="utf-8") as file:

@@ -30,6 +30,7 @@ SNAPSHOT_FIELDS = ["task_id", "seed", "env_step", "success", "episode_steps"]
 @dataclass
 class ControlledAttentionConfig:
     plan_path: Path = Path("configs/controlled_attention.json")
+    policy_path: str = "HuggingFaceVLA/smolvla_libero"
 
 
 def load_plan(path: Path) -> dict:
@@ -42,7 +43,6 @@ def load_plan(path: Path) -> dict:
         "seeds",
         "max_steps",
         "observation_steps",
-        "kernel_size",
         "layers",
         "attention_csv",
         "snapshots_csv",
@@ -50,8 +50,10 @@ def load_plan(path: Path) -> dict:
     missing = required - plan.keys()
     if missing:
         raise ValueError(f"Plan is missing keys: {', '.join(sorted(missing))}")
-    if plan["kernel_size"] % 2 == 0:
-        raise ValueError("kernel_size must be odd")
+    kernel_sizes = plan.get("kernel_sizes", [plan.get("kernel_size", 51)])
+    if not kernel_sizes or any(not isinstance(size, int) or size <= 0 or size % 2 == 0 for size in kernel_sizes):
+        raise ValueError("kernel_sizes must be a non-empty list of positive odd integers")
+    plan["kernel_sizes"] = kernel_sizes
     return plan
 
 
@@ -74,11 +76,14 @@ def _record_three_conditions(
     seed: int,
     step: int,
 ):
-    variants = [
-        ("clean", "clean", "none", "", NoCorruption()),
-        ("blur_51_0", "blur", "image", plan["kernel_size"], GaussianBlur("image", plan["kernel_size"])),
-        ("blur_51_1", "blur", "image2", plan["kernel_size"], GaussianBlur("image2", plan["kernel_size"])),
-    ]
+    variants = [("clean", "clean", "none", "", NoCorruption())]
+    for kernel_size in plan["kernel_sizes"]:
+        variants.extend(
+            [
+                (f"blur_{kernel_size}_0", "blur", "image", kernel_size, GaussianBlur("image", kernel_size)),
+                (f"blur_{kernel_size}_1", "blur", "image2", kernel_size, GaussianBlur("image2", kernel_size)),
+            ]
+        )
 
     for condition, method, corrupted_camera, kernel_size, corruption in variants:
         variant = deepcopy(raw_observation)
@@ -116,7 +121,7 @@ def main(cfg: ControlledAttentionConfig):
     attention_csv.parent.mkdir(parents=True, exist_ok=True)
     snapshots_csv.parent.mkdir(parents=True, exist_ok=True)
 
-    policy, policy_config, preprocessor, postprocessor = load_policy_components()
+    policy, policy_config, preprocessor, postprocessor = load_policy_components(cfg.policy_path)
     snapshot_rows = []
     selected_steps = set(plan["observation_steps"])
 
