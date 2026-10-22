@@ -10,7 +10,8 @@ wheels/
 .venv
 
 # Generated rollout videos and invalid partial experiment outputs
-results/videos/
+results/videos/*
+!results/videos/clean_seed42_*.mp4
 results/attention/interrupted/
 
 # Runtime lock used to prevent concurrent experiment writers
