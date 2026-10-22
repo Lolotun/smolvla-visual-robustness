@@ -1,0 +1,28 @@
+{
+  "suite": "libero_spatial",
+  "task_ids": [0, 1, 2, 3, 4],
+  "seeds": [42, 43, 44],
+  "n_envs": 3,
+  "max_steps": 140,
+  "conditions": [
+    {"name": "clean", "method": "clean"},
+    {
+      "name": "off_mix_0_1_0",
+      "method": "scheduled_turnoff",
+      "schedule": [
+        {"camera": "image", "start_step": 10, "duration": 20},
+        {"camera": "image2", "start_step": 40, "duration": 20},
+        {"camera": "image", "start_step": 80, "duration": 20}
+      ]
+    },
+    {
+      "name": "off_mix_1_0_1",
+      "method": "scheduled_turnoff",
+      "schedule": [
+        {"camera": "image2", "start_step": 10, "duration": 20},
+        {"camera": "image", "start_step": 40, "duration": 20},
+        {"camera": "image2", "start_step": 80, "duration": 20}
+      ]
+    }
+  ]
+}

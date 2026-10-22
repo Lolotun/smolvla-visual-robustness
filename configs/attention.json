@@ -1,12 +1,12 @@
 {
   "suite": "libero_spatial",
-  "task_ids": [0],
-  "seeds": [42],
-  "n_envs": 1,
+  "task_ids": [0, 1, 2, 3, 4],
+  "seeds": [42, 43, 44],
+  "n_envs": 3,
   "max_steps": 140,
   "attention": {
     "enabled": true,
-    "output_csv": "results/attention/libero_spatial_task0_seed42.csv",
+    "output_csv": "results/attention/libero_spatial_5tasks_3seeds.csv",
     "layers": [0,7,15],
     "steps": [0]
   },

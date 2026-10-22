@@ -1,0 +1,16 @@
+{
+  "suite": "libero_spatial",
+  "task_ids": [0, 1, 2, 3, 4],
+  "seeds": [42, 43, 44],
+  "n_envs": 3,
+  "max_steps": 140,
+  "conditions": [
+    {"name": "clean", "method": "clean"},
+    {"name": "right_occlusion_25_0", "method": "right_occlusion", "camera": "image", "fraction": 0.25},
+    {"name": "right_occlusion_50_0", "method": "right_occlusion", "camera": "image", "fraction": 0.50},
+    {"name": "right_occlusion_75_0", "method": "right_occlusion", "camera": "image", "fraction": 0.75},
+    {"name": "right_occlusion_25_1", "method": "right_occlusion", "camera": "image2", "fraction": 0.25},
+    {"name": "right_occlusion_50_1", "method": "right_occlusion", "camera": "image2", "fraction": 0.50},
+    {"name": "right_occlusion_75_1", "method": "right_occlusion", "camera": "image2", "fraction": 0.75}
+  ]
+}

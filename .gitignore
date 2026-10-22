@@ -8,3 +8,10 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Generated rollout videos and invalid partial experiment outputs
+results/videos/
+results/attention/interrupted/
+
+# Runtime lock used to prevent concurrent experiment writers
+*.csv.lock

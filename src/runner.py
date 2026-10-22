@@ -23,6 +23,7 @@ from corruptions import NoCorruption, VisualCorruption, make_corruption
 
 CHECKPOINT = "HuggingFaceVLA/smolvla_libero"
 DEVICE = "cuda"
+VIDEO_FPS = 20
 
 
 def load_policy_components():
@@ -83,6 +84,7 @@ def run_batch(
     max_steps: int | None = None,
     corruption: VisualCorruption | None = None,
     output_names: list[str] | None = None,
+    videos_dir: str | Path | None = None,
     attention: bool = False,
     attention_csv: str | Path | None = None,
     attention_metadata: list[dict] | None = None,
@@ -170,20 +172,19 @@ def run_batch(
         progress.set_postfix({"success": f"{successes.sum()}/{n_envs}"})
 
     if output_names is not None:
-        videos_dir = Path("results/videos") / corruption.name
+        videos_dir = Path(videos_dir) if videos_dir is not None else Path("results/videos") / corruption.name
         videos_dir.mkdir(parents=True, exist_ok=True)
-        fps = env.unwrapped.metadata["render_fps"]
         for index, output_name in enumerate(output_names):
             if main_frames[index]:
                 write_video(
                     str(videos_dir / f"{output_name}_main.mp4"),
                     np.stack(main_frames[index]),
-                    fps=fps,
+                    fps=VIDEO_FPS,
                 )
                 write_video(
                     str(videos_dir / f"{output_name}_wrist.mp4"),
                     np.stack(wrist_frames[index]),
-                    fps=fps,
+                    fps=VIDEO_FPS,
                 )
 
     return [
@@ -209,6 +210,7 @@ def run_episode(
     max_steps: int | None = None,
     corruption: VisualCorruption | None = None,
     output_name: str | None = None,
+    videos_dir: str | Path | None = None,
     return_observations: bool = False,
     attention: bool = False,
     attention_csv: str | Path | None = None,
@@ -291,11 +293,10 @@ def run_episode(
         all_observations.append(deepcopy(preprocess_observation(raw_observation)))
 
     if output_name is not None:
-        videos_dir = Path("results/videos") / corruption.name
+        videos_dir = Path(videos_dir) if videos_dir is not None else Path("results/videos") / corruption.name
         videos_dir.mkdir(parents=True, exist_ok=True)
-        fps = env.unwrapped.metadata["render_fps"]
-        write_video(str(videos_dir / f"{output_name}_main.mp4"), np.stack(main_frames), fps=fps)
-        write_video(str(videos_dir / f"{output_name}_wrist.mp4"), np.stack(wrist_frames), fps=fps)
+        write_video(str(videos_dir / f"{output_name}_main.mp4"), np.stack(main_frames), fps=VIDEO_FPS)
+        write_video(str(videos_dir / f"{output_name}_wrist.mp4"), np.stack(wrist_frames), fps=VIDEO_FPS)
 
     result = {
         "seed": seed,
@@ -317,13 +318,19 @@ class RunConfig:
     corruption: str = "clean"
     camera: str = "image2"
     kernel_size: int = 5
+    freeze_period: int = 5
     output_name: str = "episode"
 
 
 @parser.wrap()
 def main(cfg: RunConfig):
     policy, policy_config, preprocessor, postprocessor = load_policy_components()
-    corruption = make_corruption(cfg.corruption, cfg.kernel_size, cfg.camera)
+    corruption = make_corruption(
+        cfg.corruption,
+        kernel_size=cfg.kernel_size,
+        camera=cfg.camera,
+        period=cfg.freeze_period,
+    )
     env, env_preprocessor, env_postprocessor = make_task_environment(
         cfg.task, cfg.task_id, policy_config
     )

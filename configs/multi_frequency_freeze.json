@@ -1,0 +1,16 @@
+{
+  "suite": "libero_spatial",
+  "task_ids": [0, 1, 2, 3, 4],
+  "seeds": [42, 43, 44],
+  "n_envs": 3,
+  "max_steps": 140,
+  "conditions": [
+    {"name": "clean", "method": "clean"},
+    {"name": "freeze_main5_wrist2", "method": "multi_freeze", "periods": {"image": 5, "image2": 2}},
+    {"name": "freeze_main2_wrist5", "method": "multi_freeze", "periods": {"image": 2, "image2": 5}},
+    {"name": "freeze_main10_wrist5", "method": "multi_freeze", "periods": {"image": 10, "image2": 5}},
+    {"name": "freeze_main5_wrist10", "method": "multi_freeze", "periods": {"image": 5, "image2": 10}},
+    {"name": "freeze_main20_wrist10", "method": "multi_freeze", "periods": {"image": 20, "image2": 10}},
+    {"name": "freeze_main10_wrist20", "method": "multi_freeze", "periods": {"image": 10, "image2": 20}}
+  ]
+}

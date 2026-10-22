@@ -1,0 +1,15 @@
+{
+  "suite": "libero_spatial",
+  "task_ids": [0, 1, 2, 3, 4],
+  "seeds": [42, 43, 44],
+  "n_envs": 3,
+  "max_steps": 140,
+  "conditions": [
+    {"name": "clean", "method": "clean"},
+    {"name": "freeze_2_0", "method": "freeze", "camera": "image", "period": 2},
+    {"name": "freeze_5_0", "method": "freeze", "camera": "image", "period": 5},
+    {"name": "freeze_10_0", "method": "freeze", "camera": "image", "period": 10},
+    {"name": "freeze_20_0", "method": "freeze", "camera": "image", "period": 20},
+    {"name": "freeze_140_0", "method": "freeze", "camera": "image", "period": 140}
+  ]
+}
