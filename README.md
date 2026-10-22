@@ -5,7 +5,10 @@
 Vision-language-action (VLA) policies control robots from camera images, and real cameras fail: they blur, freeze or
 go dark. We test how the pretrained **SmolVLA** policy, which sees the scene through a main camera and a wrist camera,
 copes when one of these cameras is blurred, blacked out or updated at a reduced frame rate. We also check whether the
-policy shifts its attention to the healthy camera. On five LIBERO-Spatial tasks (clean success 69.5%), losing either
+policy shifts its attention to the healthy camera. We then fine-tuned SmolVLA with LoRA and camera corruptions,
+improving its success rate under main-camera blur by up to 22.2 percentage points in our evaluation.
+
+On five LIBERO-Spatial tasks (clean success 69.5%), losing either
 camera for a whole episode reduces success to 0–10%, and strong blur or a 1 Hz frame rate is almost as harmful. A
 1-second blackout costs much less. Attention moves away from a corrupted camera but barely towards the healthy one,
 so the policy does not use its two views redundantly.
@@ -22,7 +25,7 @@ so the policy does not use its two views redundantly.
 ## Setup
 
 **Policy.** [`HuggingFaceVLA/smolvla_libero`](https://huggingface.co/HuggingFaceVLA/smolvla_libero), used without
-fine-tuning. SmolVLA is a vision-language model plus a flow-matching *action expert*: from two camera images, the robot
+fine-tuning in the baseline experiments. The LoRA follow-up is described below. SmolVLA is a vision-language model plus a flow-matching *action expert*: from two camera images, the robot
 state and a text instruction it predicts robot actions at 20 Hz.
 
 **Cameras.** The **main camera** is a fixed third-person view of the table (`image`, suffix `_0` in condition names).
@@ -129,19 +132,67 @@ p-values (against both the pooled and the same-run clean baseline) are in [`resu
 More figures in [`figures/`](figures): clean-baseline variability, per-task success, time-to-success curves, and
 attention on identical observations along clean trajectories.
 
+## Training with camera corruptions
+
+We fine-tuned SmolVLA on **225 LIBERO-Spatial demonstrations** from `lerobot/libero` using
+[`train_robust.py`](src/train_robust.py). The episode list is in
+[`train_robust_lora.json`](configs/train_robust_lora.json). These demonstrations cover five bowl locations:
+on the cookie box, next to the plate, next to the ramekin, table center, and on the wooden cabinet.
+The last comparison uses tasks 0–2. In the installed LIBERO task order, two training tasks overlap with
+test tasks 1 and 2 (next to the ramekin and table center), so this is not a fully held-out task split.
+
+We used **LoRA rank 8, alpha 8, dropout 0**, with adapters on the action expert's query/value projections
+and the state, action and time projections. The pretrained weights, including the visual encoder, stayed frozen.
+Training ran for **15,000 steps**, with **batch size 4**, seed 42 and AdamW at a peak learning rate of $10^{-4}$.
+We used 1,000 warm-up steps followed by cosine decay and saved a checkpoint every 3,000 steps.
+
+For each training sample, we randomly kept both images clean or corrupted one camera:
+
+$$
+(\widetilde I_m,\widetilde I_w)=
+\begin{cases}
+(I_m,I_w), & p=0.50,\\
+(\operatorname{blur}_{31}(I_m),I_w), & p=0.15,\\
+(I_m,\operatorname{blur}_{31}(I_w)), & p=0.15,\\
+(0,I_w), & p=0.10,\\
+(I_m,0), & p=0.10.
+\end{cases}
+$$
+
+Here $I_m$ and $I_w$ are the main and wrist images. Blur uses a 31 × 31 Gaussian kernel; blackout replaces
+one image with zeros. The action targets, robot state and instruction stay unchanged. This gives the model
+practice following the same demonstrations when one view is degraded.
+
+### Results after training
+
+![Original SmolVLA and robust LoRA](figures/robust_lora_bars.png)
+
+We compared both models on **3 tasks × 3 seeds**, with 140 steps per episode. The original model's blur and
+full-blackout results come from the blur run; temporary blackouts come from a separate run. Each panel uses
+that run's clean reference. Exact counts and confidence intervals are in [the notebook](notebooks/analysis.ipynb).
+
+With the main camera blurred, success rose from **44.4% to 66.7%** at $k=5$ and from **33.3% to 44.4%** at
+$k=31$. Clean success in this comparison stayed at **77.8%**. A short main-camera blackout during approach
+also improved, from **66.7% to 100%**.
+
+Other conditions were mixed. Full blackout did not improve, and blackout during grasp became worse for both
+cameras. Averaged across all 12 corrupted conditions, both models scored **46.3%**. With nine episodes per
+condition, one extra success changes the result by 11.1 points.
+
 ## Conclusions
 
-SmolVLA depends on both cameras: it has no fallback when either one is lost for the whole episode, and it does not
-redirect its attention to the remaining view. It tolerates mild blur, frame rates down to 2 Hz, and short 1-s blackouts
-much better. For deployment this means that a camera failure must be detected and handled outside the policy.
+SmolVLA struggles when either camera is lost for a whole episode. Short interruptions are less damaging,
+and attention does not consistently shift to the healthy view. Training with camera corruptions helped with
+main-camera blur in our runs, but did not fix full camera loss. The next step is to correct the task split
+and check whether these gains hold on tasks excluded from fine-tuning.
 
 ## Limitations
 
 - One suite (LIBERO-Spatial), five tasks, three seeds; 15–30 episodes per condition, so only large effects are detectable.
 - The 140-step limit turns a slower robot into a failure, so absolute success rates are lower than with the standard
   LIBERO horizon.
-- A black or frozen image is also an input the model never saw in training. The blackout results measure failure under
-  such out-of-distribution input, not only the loss of information.
+- The LoRA evaluation has nine episodes per condition and some overlap between training and test tasks.
+- LoRA training includes blur and black frames, but not frozen frames or timed blackout sequences.
 - Attention is recorded only at the first step of each episode (and at five states in the controlled probe), and only in
   layers 7 and 15.
 - Not run yet: the mirrored three-blackout schedule `off_mix_1_0_1` (3 of 15 episodes), different frame rates for the two
@@ -172,8 +223,8 @@ This command overwrites `notebooks/analysis.ipynb`, `figures/` and `results/anal
 uv run --no-project --with jupyter==1.1.1 --with nbconvert==7.17.2 --with ipykernel==7.4.0 --with pandas==3.1.0 --with numpy==2.5.4 --with matplotlib==3.11.2 --with scipy==1.18.1 --with statsmodels==0.15.0 --with opencv-python-headless==5.0.0.93 jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.kernel_name=python3 notebooks/analysis.ipynb
 ```
 
-The summary at the end of the notebook is generated from the data. The last cell checks every number quoted in this
-README against the data; if new results change one of them, the run stops and lists the README lines to update.
+The baseline summary is generated from the data. Section 10 checks the original baseline claims in this
+README against the data; if new results change one of them, the run stops and lists the README lines to update. Sections 11–12 add LoRA comparisons; their results are saved in `results/analysis/robust_lora_*.csv`.
 
 ## Repository layout
 
