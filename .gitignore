@@ -14,5 +14,9 @@ results/videos/*
 !results/videos/clean_seed42_*.mp4
 results/attention/interrupted/
 
+# Trained checkpoints and raw attention tensors are large, reproducible artifacts.
+outputs/train/
+results/controlled_attention*/
+
 # Runtime lock used to prevent concurrent experiment writers
 *.csv.lock

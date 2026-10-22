@@ -1,0 +1,11 @@
+{
+  "suite": "libero_spatial",
+  "task_ids": [0, 1],
+  "seeds": [42, 43],
+  "max_steps": 140,
+  "observation_steps": [0, 15, 30, 45, 60],
+  "kernel_sizes": [5, 31, 51],
+  "layers": [7, 15],
+  "attention_csv": "results/controlled_attention_multiblur/lora_attention.csv",
+  "snapshots_csv": "results/controlled_attention_multiblur/lora_snapshots.csv"
+}
