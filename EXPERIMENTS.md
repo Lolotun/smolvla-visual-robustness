@@ -1,30 +1,31 @@
-# Журнал экспериментов SmolVLA visual robustness
+# SmolVLA visual robustness: experiment log
 
-Тема: **When Vision Freezes: Robustness of SmolVLA to Camera Failures in LIBERO**.
+Topic: **When Vision Freezes: Robustness of SmolVLA to Camera Failures in LIBERO**.
 
-Этот файл фиксирует, что уже проверено, какие результаты получены и что запускать дальше.
+This file records what has been tested, what results were obtained, and what to run next.
+The combined analysis of all finished runs is in [`notebooks/analysis.ipynb`](notebooks/analysis.ipynb).
 
-## Общий протокол
+## Common protocol
 
-- Policy: `HuggingFaceVLA/smolvla_libero`, без fine-tuning.
+- Policy: `HuggingFaceVLA/smolvla_libero`, no fine-tuning.
 - Suite: `libero_spatial`.
-- Задачи: `task_id = 0, 1, 2, 3, 4`.
+- Tasks: `task_id = 0, 1, 2, 3, 4`.
 - Seeds: `42, 43, 44`.
-- Максимальная длина эпизода: 140 policy-шагов.
-- Частота policy и входных observations: 20 Hz.
-- На одно условие: 5 задач × 3 seed = 15 эпизодов.
-- `image` / суффикс `_0`: основная камера.
-- `image2` / суффикс `_1`: wrist-камера.
+- Maximum episode length: 140 policy steps.
+- Policy and observation rate: 20 Hz.
+- Per condition: 5 tasks × 3 seeds = 15 episodes.
+- `image` / suffix `_0`: main camera.
+- `image2` / suffix `_1`: wrist camera.
 
-## Проверено
+## Completed
 
 ### Gaussian blur
 
-Статус: **завершено** для обеих камер и ядер `5, 11, 15, 31, 51`.
+Status: **done** for both cameras and kernels `5, 11, 15, 31, 51`.
 
-Результаты: [`results/visual_robustness_5tasks_3seeds_batch.csv`](results/visual_robustness_5tasks_3seeds_batch.csv).
+Results: [`results/visual_robustness_5tasks_3seeds_batch.csv`](results/visual_robustness_5tasks_3seeds_batch.csv).
 
-| Условие | Success rate |
+| Condition | Success rate |
 |---|---:|
 | clean | 73.3% (11/15) |
 | blur 5, main | 40.0% (6/15) |
@@ -38,83 +39,90 @@
 | blur 31, wrist | 53.3% (8/15) |
 | blur 51, wrist | 13.3% (2/15) |
 
-Вывод пока предварительный: сильный blur ухудшает обе камеры, но 15 эпизодов на условие недостаточно, чтобы интерпретировать немонотонные значения как устойчивый эффект.
+Preliminary conclusion: strong blur degrades both cameras, but 15 episodes per condition are not enough to interpret
+non-monotonic values as a real effect. The same grid was repeated in the attention run
+([`results/attention/rollouts_5tasks_3seeds.csv`](results/attention/rollouts_5tasks_3seeds.csv)); the analysis
+notebook pools both runs (30 episodes per condition).
 
-### Полное выключение одной камеры
+### Camera off for the whole episode
 
-Статус: **завершено** для всего эпизода.
+Status: **done**.
 
-| Условие | Success rate |
+| Condition | Success rate |
 |---|---:|
 | turnoff main | 13.3% (2/15) |
 | turnoff wrist | 0.0% (0/15) |
 
-Результаты находятся в том же CSV, что и blur.
+Results are in the same CSV as blur.
 
-### Снижение частоты камеры через frame freeze
+### Lower camera rate via frame freeze
 
-Статус: **завершено** для обеих камер, периоды `2, 5, 10, 20`.
+Status: **done** for both cameras, periods `2, 5, 10, 20`.
 
-`freeze_P_C` обновляет камеру каждые `P` policy-шагов и удерживает предыдущий кадр между обновлениями.
+`freeze_P_C` refreshes camera `C` every `P` policy steps and holds the previous frame in between.
 
-Результаты основной камеры: [`results/freeze_image0_5tasks_3seeds.csv`](results/freeze_image0_5tasks_3seeds.csv).
+Main camera results: [`results/freeze_image0_5tasks_3seeds.csv`](results/freeze_image0_5tasks_3seeds.csv).
 
-| Условие | Success rate | Изменение относительно clean этого запуска |
+| Condition | Success rate | Change vs clean of this run |
 |---|---:|---:|
 | clean | 66.7% (10/15) | — |
-| freeze 2, main | 73.3% (11/15) | +6.6 п.п. |
-| freeze 5, main | 53.3% (8/15) | −13.4 п.п. |
-| freeze 10, main | 46.7% (7/15) | −20.0 п.п. |
-| freeze 20, main | 6.7% (1/15) | −60.0 п.п. |
+| freeze 2, main | 73.3% (11/15) | +6.6 pp |
+| freeze 5, main | 53.3% (8/15) | −13.4 pp |
+| freeze 10, main | 46.7% (7/15) | −20.0 pp |
+| freeze 20, main | 6.7% (1/15) | −60.0 pp |
 
-Результаты wrist-камеры: [`results/freeze_image1_5tasks_3seeds.csv`](results/freeze_image1_5tasks_3seeds.csv).
+Wrist camera results: [`results/freeze_image1_5tasks_3seeds.csv`](results/freeze_image1_5tasks_3seeds.csv).
 
-| Условие | Success rate | Изменение относительно clean этого запуска |
+| Condition | Success rate | Change vs clean of this run |
 |---|---:|---:|
 | clean | 73.3% (11/15) | — |
-| freeze 2, wrist | 53.3% (8/15) | −20.0 п.п. |
-| freeze 5, wrist | 53.3% (8/15) | −20.0 п.п. |
-| freeze 10, wrist | 53.3% (8/15) | −20.0 п.п. |
-| freeze 20, wrist | 26.7% (4/15) | −46.6 п.п. |
+| freeze 2, wrist | 53.3% (8/15) | −20.0 pp |
+| freeze 5, wrist | 53.3% (8/15) | −20.0 pp |
+| freeze 10, wrist | 53.3% (8/15) | −20.0 pp |
+| freeze 20, wrist | 26.7% (4/15) | −46.6 pp |
 
-Главное наблюдение: при периоде 20 основная камера оказалась критичнее — success rate упал до 6.7%, для wrist-камеры до 26.7%.
+Main observation: at period 20 the main camera is more critical — success drops to 6.7%, versus 26.7% for the wrist camera.
 
-Полный freeze первого кадра также завершён:
+Full freeze of the first frame is also done:
 
 - fresh clean: 53.3% (8/15);
-- `freeze_140_0`: 0.0% (0/15), первый реальный кадр основной камеры удерживается весь эпизод;
-- `freeze_140_1`: 0.0% (0/15), первый реальный кадр wrist-камеры удерживается весь эпизод.
+- `freeze_140_0`: 0.0% (0/15), the first real main-camera frame is held for the whole episode;
+- `freeze_140_1`: 0.0% (0/15), the first real wrist-camera frame is held for the whole episode.
 
-Период 140 равен максимальной длине эпизода. Rollout выполняет шаги `0–139`, поэтому повторного обновления камеры не происходит.
+Period 140 equals the maximum episode length. The rollout runs steps `0–139`, so the camera is never refreshed again.
 
-Результаты: [`results/freeze_full_5tasks_3seeds.csv`](results/freeze_full_5tasks_3seeds.csv). Проверено 45 уникальных строк и 90 видео с частотой 20 FPS.
+Results: [`results/freeze_full_5tasks_3seeds.csv`](results/freeze_full_5tasks_3seeds.csv). Checked: 45 unique rows and 90 videos at 20 FPS.
 
 ### Cross-attention pilot
 
-Статус: **pilot выполнен** для `libero_spatial`, `task_id=0`, `seed=42`, clean и разных blur обеих камер.
+Status: **pilot done** for `libero_spatial`, `task_id=0`, `seed=42`, clean and different blur levels on both cameras.
 
 - Attention CSV: [`results/attention/libero_spatial_task0_seed42.csv`](results/attention/libero_spatial_task0_seed42.csv).
 - Rollout CSV: [`results/attention/rollouts_task0_seed42.csv`](results/attention/rollouts_task0_seed42.csv).
-- Анализ: [`notebooks/effects.ipynb`](notebooks/effects.ipynb).
+- Analysis: [`notebooks/effects.ipynb`](notebooks/effects.ipynb).
 
-## Запланированные эксперименты
+The full attention run (5 tasks × 3 seeds, blur and turn-off on both cameras, attention at step 0) is in
+[`results/attention/libero_spatial_5tasks_3seeds.csv`](results/attention/libero_spatial_5tasks_3seeds.csv); the
+controlled probe on identical clean observations is in [`results/controlled_attention/`](results/controlled_attention).
+Both are analysed in [`notebooks/analysis.ipynb`](notebooks/analysis.ipynb).
 
-### Одно временное отключение за эпизод
+### One temporary blackout per episode
 
-Статус: **завершено и проверено**.
+Status: **done and checked**.
 
-В каждом corrupted-эпизоде только одна камера выключается один раз на 20 шагов. Для каждой камеры отдельно проверяются начало, середина и поздняя часть эпизода.
+In each corrupted episode only one camera is switched off once for 20 steps. For each camera the start, middle and
+later part of the episode are tested separately.
 
-| Условие | Камера | Интервал | Приблизительная фаза |
+| Condition | Camera | Steps | Approximate phase |
 |---|---|---:|---|
-| `off_approach_0` | main | шаги 10–29 | движение к объекту |
-| `off_grasp_0` | main | шаги 40–59 | приближение и grasp |
-| `off_transport_0` | main | шаги 60–79 | перенос к месту размещения |
-| `off_approach_1` | wrist | шаги 10–29 | движение к объекту |
-| `off_grasp_1` | wrist | шаги 40–59 | приближение и grasp |
-| `off_transport_1` | wrist | шаги 60–79 | перенос к месту размещения |
+| `off_approach_0` | main | 10–29 | moving towards the object |
+| `off_grasp_0` | main | 40–59 | approach and grasp |
+| `off_transport_0` | main | 60–79 | carrying to the target |
+| `off_approach_1` | wrist | 10–29 | moving towards the object |
+| `off_grasp_1` | wrist | 40–59 | approach and grasp |
+| `off_transport_1` | wrist | 60–79 | carrying to the target |
 
-Параметры будущих условий:
+Condition parameters:
 
 ```json
 [
@@ -127,72 +135,62 @@
 ]
 ```
 
-Объём вместе со свежим clean baseline: 7 условий × 5 задач × 3 seed = 105 эпизодов.
+Size including a fresh clean baseline: 7 conditions × 5 tasks × 3 seeds = 105 episodes.
 
-Результаты: [`results/temporary_off_single_5tasks_3seeds.csv`](results/temporary_off_single_5tasks_3seeds.csv).
+Results: [`results/temporary_off_single_5tasks_3seeds.csv`](results/temporary_off_single_5tasks_3seeds.csv).
 
-| Условие | Success rate | Изменение относительно fresh clean |
+| Condition | Success rate | Change vs fresh clean |
 |---|---:|---:|
 | clean | 86.7% (13/15) | — |
-| `off_approach_0` | 66.7% (10/15) | −20.0 п.п. |
-| `off_grasp_0` | 53.3% (8/15) | −33.4 п.п. |
-| `off_transport_0` | 53.3% (8/15) | −33.4 п.п. |
-| `off_approach_1` | 46.7% (7/15) | −40.0 п.п. |
-| `off_grasp_1` | 60.0% (9/15) | −26.7 п.п. |
-| `off_transport_1` | 66.7% (10/15) | −20.0 п.п. |
+| `off_approach_0` | 66.7% (10/15) | −20.0 pp |
+| `off_grasp_0` | 53.3% (8/15) | −33.4 pp |
+| `off_transport_0` | 53.3% (8/15) | −33.4 pp |
+| `off_approach_1` | 46.7% (7/15) | −40.0 pp |
+| `off_grasp_1` | 60.0% (9/15) | −26.7 pp |
+| `off_transport_1` | 66.7% (10/15) | −20.0 pp |
 
-Предварительное наблюдение: wrist-камера наиболее чувствительна к раннему окну `10–29` (−40.0 п.п.). Для основной камеры одинаково выраженное падение наблюдается при отключении на grasp и transport: оба окна дали 53.3% (−33.4 п.п.). Проверено 105 уникальных строк и 210 видео с частотой 20 FPS; transport-видео и CSV пересчитаны для точного интервала `60–79`.
+Preliminary observation: the wrist camera is most sensitive to the early window `10–29` (−40.0 pp). For the main
+camera the grasp and transport windows give the same drop: both 53.3% (−33.4 pp). Checked: 105 unique rows and
+210 videos at 20 FPS; transport videos and CSV were regenerated for the exact `60–79` window.
 
-### Три временных отключения камер внутри одного эпизода
+### Three temporary blackouts within one episode
 
-Статус: **согласовано и записано как план; ещё не реализовано и не запущено**.
+Status: **partially run**. `off_mix_0_1_0` finished all 15 episodes; `off_mix_1_0_1` stopped after 3 of 15.
 
-В каждом corrupted-эпизоде происходят три отключения длительностью 20 шагов. Камеры чередуются, а второй сценарий меняет их местами.
+In each corrupted episode there are three 20-step blackouts. The cameras alternate, and the second schedule swaps them.
 
-| Условие | Шаги 10–29 | Шаги 40–59 | Шаги 80–99 |
+| Condition | Steps 10–29 | Steps 40–59 | Steps 80–99 |
 |---|---|---|---|
-| `off_mix_0_1_0` | main выключена | wrist выключена | main выключена |
-| `off_mix_1_0_1` | wrist выключена | main выключена | wrist выключена |
+| `off_mix_0_1_0` | main off | wrist off | main off |
+| `off_mix_1_0_1` | wrist off | main off | wrist off |
 
-Параметры будущих условий:
+Condition parameters: [`configs/temporary_off_mix.json`](configs/temporary_off_mix.json).
 
-```json
-[
-  {
-    "name": "off_mix_0_1_0",
-    "method": "scheduled_turnoff",
-    "schedule": [
-      {"camera": "image", "start_step": 10, "duration": 20},
-      {"camera": "image2", "start_step": 40, "duration": 20},
-      {"camera": "image", "start_step": 80, "duration": 20}
-    ]
-  },
-  {
-    "name": "off_mix_1_0_1",
-    "method": "scheduled_turnoff",
-    "schedule": [
-      {"camera": "image2", "start_step": 10, "duration": 20},
-      {"camera": "image", "start_step": 40, "duration": 20},
-      {"camera": "image2", "start_step": 80, "duration": 20}
-    ]
-  }
-]
-```
+Results: [`results/temporary_off_mix_5tasks_3seeds.csv`](results/temporary_off_mix_5tasks_3seeds.csv).
 
-План пока хранится только в этом Markdown-файле. Объём вместе со свежим clean baseline: 3 условия × 5 задач × 3 seed = 45 эпизодов.
+| Condition | Success rate |
+|---|---:|
+| clean | 53.3% (8/15) |
+| `off_mix_0_1_0` | 33.3% (5/15) |
+| `off_mix_1_0_1` | 33.3% (1/3), incomplete |
 
-## Возможные проверки после временного выключения
+Remaining: finish `off_mix_1_0_1` (12 episodes).
 
-- Постоянная задержка изображения относительно состояния робота.
-- Анализ action deviation на одинаковых clean/corrupted observations.
+## Possible follow-ups after temporary blackout
 
-### Одновременный freeze камер с разными частотами
+- Constant image delay relative to the robot state.
+- Action-deviation analysis on identical clean/corrupted observations.
 
-Статус: **согласовано, ещё не реализовано и не запущено**.
+## Planned
 
-Обе камеры замораживаются одновременно. Проверяются соседние уровни частоты `10↔4 Hz`, `4↔2 Hz` и `2↔1 Hz`; внутри каждой пары частоты меняются между основной и wrist-камерой.
+### Simultaneous freeze of both cameras at different rates
 
-| Условие | Period main | Частота main | Period wrist | Частота wrist |
+Status: **config ready** ([`configs/multi_frequency_freeze.json`](configs/multi_frequency_freeze.json)), **not run yet**.
+
+Both cameras are frozen at the same time. Neighbouring rate levels `10↔4 Hz`, `4↔2 Hz` and `2↔1 Hz` are tested;
+within each pair the rates are swapped between the main and wrist cameras.
+
+| Condition | Main period | Main rate | Wrist period | Wrist rate |
 |---|---:|---:|---:|---:|
 | `freeze_main5_wrist2` | 5 | 4 Hz | 2 | 10 Hz |
 | `freeze_main2_wrist5` | 2 | 10 Hz | 5 | 4 Hz |
@@ -201,92 +199,84 @@
 | `freeze_main20_wrist10` | 20 | 1 Hz | 10 | 2 Hz |
 | `freeze_main10_wrist20` | 10 | 2 Hz | 20 | 1 Hz |
 
-Объём: 6 условий × 5 задач × 3 seed = 90 эпизодов. Такая сетка изменяет частоту обеих камер и проверяет, какая из них сильнее нуждается в более свежем изображении, без полного перебора всех сочетаний `2 × 5 × 10 × 20`.
+Size: 6 conditions × 5 tasks × 3 seeds = 90 episodes (105 with a fresh clean baseline). This grid changes the rate of
+both cameras and tests which one needs fresher images more, without the full `2 × 5 × 10 × 20` grid.
 
-### Частичное перекрытие камеры с правого края
+### Partial occlusion from the right edge
 
-Статус: **согласовано, ещё не реализовано и не запущено**.
+Status: **config ready** ([`configs/right_occlusion.json`](configs/right_occlusion.json)), **not run yet**.
 
-На выбранную камеру на весь эпизод накладывается непрозрачная чёрная область, которая входит с правого края. Она закрывает заданную долю ширины изображения по всей высоте. Вторая камера остаётся без изменений.
+An opaque black area enters the selected camera from the right edge for the whole episode. It covers a given fraction
+of the image width over the full height. The other camera is unchanged.
 
-| Условие | Камера | Закрытая часть изображения |
+| Condition | Camera | Covered part of the image |
 |---|---|---:|
-| `right_occlusion_25_0` | main | правые 25% |
-| `right_occlusion_50_0` | main | правые 50% |
-| `right_occlusion_75_0` | main | правые 75% |
-| `right_occlusion_25_1` | wrist | правые 25% |
-| `right_occlusion_50_1` | wrist | правые 50% |
-| `right_occlusion_75_1` | wrist | правые 75% |
+| `right_occlusion_25_0` | main | right 25% |
+| `right_occlusion_50_0` | main | right 50% |
+| `right_occlusion_75_0` | main | right 75% |
+| `right_occlusion_25_1` | wrist | right 25% |
+| `right_occlusion_50_1` | wrist | right 50% |
+| `right_occlusion_75_1` | wrist | right 75% |
 
-Будущие параметры условий:
+Size including a fresh clean baseline: 7 conditions × 5 tasks × 3 seeds = 105 episodes.
 
-```json
-[
-  {"name": "right_occlusion_25_0", "method": "right_occlusion", "camera": "image", "fraction": 0.25},
-  {"name": "right_occlusion_50_0", "method": "right_occlusion", "camera": "image", "fraction": 0.50},
-  {"name": "right_occlusion_75_0", "method": "right_occlusion", "camera": "image", "fraction": 0.75},
-  {"name": "right_occlusion_25_1", "method": "right_occlusion", "camera": "image2", "fraction": 0.25},
-  {"name": "right_occlusion_50_1", "method": "right_occlusion", "camera": "image2", "fraction": 0.50},
-  {"name": "right_occlusion_75_1", "method": "right_occlusion", "camera": "image2", "fraction": 0.75}
-]
-```
+## Execution procedure
 
-Объём вместе со свежим clean baseline: 7 условий × 5 задач × 3 seed = 105 эпизодов.
+### 1. Reliable runs
 
-## Порядок автономного выполнения
+- Do not modify the installed LeRobot package inside `.venv`; all logic stays in `src/`.
+- Save videos at 20 FPS, matching policy steps.
+- Separate videos by experiment name so new clean videos do not overwrite old ones.
+- Support safe resumption of an interrupted plan: already saved `(condition, task_id, seed)` are not re-run.
+- Write the CSV row right after each episode.
+- Run only one GPU experiment at a time.
 
-Эксперименты не запускаются до отдельной команды пользователя «запускай». После этой команды работа выполняется по следующему порядку без дополнительных вопросов.
+### 2. Check each corruption before the full run
 
-### 1. Подготовить надёжный запуск
+- Check Python and JSON syntax.
+- On synthetic NumPy frames, check exact step boundaries, the selected camera, array shape and `uint8`.
+- Do a short smoke run on one task and one seed.
+- Check the saved video and make sure the corruption is visible on the right camera.
+- Do not include smoke results in the final statistics.
 
-- Не изменять установленный пакет LeRobot внутри `.venv`; вся логика остаётся в `src/`.
-- Сохранять видео с частотой 20 FPS, соответствующей policy-шагам.
-- Разделить видео по именам экспериментов, чтобы новые clean-видео не перезаписывали старые.
-- Добавить безопасное продолжение прерванного плана: уже сохранённые `(condition, task_id, seed)` не выполняются повторно.
-- После каждого эпизода сразу сохранять строку CSV.
-- Выполнять только один GPU-эксперимент одновременно.
+### 3. Run the sets sequentially
 
-### 2. Проверить каждую corruption до полного запуска
+Each set uses `libero_spatial`, tasks `0–4`, seeds `42, 43, 44`, `n_envs=3`, at most 140 steps and its own fresh clean baseline.
 
-- Проверить синтаксис Python и JSON.
-- На искусственных NumPy-кадрах проверить точные границы шагов, выбранную камеру, форму массива и `uint8`.
-- Выполнить короткий smoke-run на одной задаче и одном seed.
-- Проверить сохранённое видео и убедиться, что corruption видна на нужной камере.
-- Smoke-результаты не включать в итоговую статистику.
+1. **Full freeze:** `clean`, `freeze_140_0`, `freeze_140_1` — 45 episodes. Done.
+2. **One blackout per episode:** `clean` and 6 phase/camera conditions — 105 episodes. Done.
+3. **Three blackouts per episode:** `clean`, `off_mix_0_1_0`, `off_mix_1_0_1` — 45 episodes. 33 of 45 done.
+4. **Different rates for the two cameras:** `clean` and 6 frequency conditions — 105 episodes.
+5. **Right occlusion:** `clean` and 6 conditions `25/50/75%` for two cameras — 105 episodes.
 
-### 3. Запустить наборы последовательно
+### 4. Checks after each set
 
-Каждый набор использует `libero_spatial`, задачи `0–4`, seed `42, 43, 44`, `n_envs=3`, максимум 140 шагов и собственный fresh clean baseline.
+- Check the expected number of rows and that all three seeds exist for every task and condition.
+- Check that there are no duplicate `(condition, task_id, seed)`.
+- Create summaries by condition and by task.
+- Compute success rate, drop relative to clean and mean number of steps.
+- Check the number and FPS of videos; for temporary events check the frame intervals.
+- Record the status and main results in this file before moving to the next set.
 
-1. **Полный freeze:** `clean`, `freeze_140_0`, `freeze_140_1` — 45 эпизодов.
-2. **Одно отключение за эпизод:** `clean` и 6 условий по фазам/камерам — 105 эпизодов.
-3. **Три отключения за эпизод:** `clean`, `off_mix_0_1_0`, `off_mix_1_0_1` — 45 эпизодов.
-4. **Разные частоты двух камер:** `clean` и 6 симметричных frequency-условий — 105 эпизодов.
-5. **Перекрытие справа:** `clean` и 6 условий `25/50/75%` для двух камер — 105 эпизодов.
+### 5. Final analysis
 
-Всего: 405 эпизодов, включая fresh clean каждого набора.
+Done in [`notebooks/analysis.ipynb`](notebooks/analysis.ipynb) for all finished sets:
 
-### 4. Проверка после каждого набора
+- single table of all results;
+- success-rate plots for each camera and severity;
+- main vs wrist comparison at equal corruption;
+- per-task breakdown and time-to-success curves;
+- cross-attention analysis.
 
-- Проверить ожидаемое число строк и наличие трёх seed для каждой задачи и условия.
-- Проверить, что нет дубликатов `(condition, task_id, seed)`.
-- Создать summary по условиям и отдельно по задачам.
-- Посчитать success rate, падение относительно clean и среднее число шагов.
-- Проверить число и FPS видео; для временных событий проверить нужные интервалы кадров.
-- Записать статус и основные результаты в этот файл перед переходом к следующему набору.
+Still open: paired action-deviation analysis on identical clean/corrupted observations. The number of seeds stays
+`42, 43, 44` in all final experiments.
 
-### 5. Итоговый анализ
+## Limitations and technical notes
 
-- Собрать единую таблицу результатов всех завершённых наборов.
-- Построить графики success rate для каждой камеры и severity.
-- Сравнить main и wrist при одинаковом нарушении.
-- Выделить характерные неуспешные эпизоды и соответствующие видео.
-- Отдельно провести paired action-deviation анализ на одинаковых clean/corrupted observations.
-- Не увеличивать число seed: во всех итоговых экспериментах остаются `42, 43, 44`.
-
-## Ограничения и технические заметки
-
-- Один эпизод из 15 меняет success rate на 6.7 процентного пункта. Небольшие различия пока нельзя считать надёжным эффектом.
-- Clean дал 66.7% и 73.3% в двух отдельных freeze-запусках. Оценивание не полностью детерминировано, поэтому каждое сравнение нужно проводить с clean из того же запуска.
-- Существующие видео записаны с `render_fps=80`, хотя observations поступают с частотой 20 Hz. Они воспроизводятся примерно в четыре раза быстрее; для правильной скорости их нужно смотреть на `0.25×` или сохранять будущие видео с 20 FPS.
-- Видео фиксируют изображения после corruption. В `freeze_*_0` замороженную основную камеру видно в файле `*_main.mp4`, в `freeze_*_1` замороженную wrist-камеру — в `*_wrist.mp4`.
+- One episode out of 15 changes the success rate by 6.7 percentage points. Small differences cannot be treated as reliable effects.
+- Clean gave between 53.3% and 86.7% in separate runs. Evaluation is not fully deterministic, so every comparison
+  should use the clean episodes of the same run or the pooled clean baseline.
+- Older videos were recorded with `render_fps=80`, although observations arrive at 20 Hz. They play about four times
+  too fast; watch them at `0.25×` or record new videos at 20 FPS.
+- Videos show images after corruption. In `freeze_*_0` the frozen main camera is visible in `*_main.mp4`, in
+  `freeze_*_1` the frozen wrist camera is visible in `*_wrist.mp4`.
